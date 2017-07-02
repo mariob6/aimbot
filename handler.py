@@ -4,17 +4,16 @@ import random
 
 class MessageHandler(object):
 
-    _HI = {'ciao', 'ciaone', 'bella ', 'hey'}
+    _HI = ['ciao', 'ciaone', 'bella ', 'hey']
 
     def __init__(self, botId, botName, client, socket_delay=1):
         self.botId = botId
         self.botName = botName
-        self.mention = self.getMention(botName)
+        self.mention = self.getMention(botId)
         self.client = client
         self.delay = socket_delay
 
-    @staticmethod
-    def isPrivate(event):
+    def isPrivate(self, event):
         """Checks if private slack channel"""
         return event.get('channel').startswith('D')
 
@@ -33,7 +32,6 @@ class MessageHandler(object):
             return 'private'
 
         messageText = event.get('text')
-        print(messageText)
 
         if self.mention in messageText.split():
             return 'mention'
@@ -46,30 +44,32 @@ class MessageHandler(object):
             'chat.postMessage', channel=channel,
             text=messageText, as_user=True)
 
-    @staticmethod
     def isHi(self, message):
         for token in message.split(' '):
             if token in self._HI:
                 return True
 
-    def sayHi(self, user, channel, private=False):
-        if self.isPrivate(channel):
-            messageText = '{0} {1}'.format(random.sample(self._HI), user)
+    def sayHi(self, user, channel, mention=False):
+        # TODO hack
+        if channel.startswith('D'):
+            userName = self.getMention(user)
+            messageText = '{0} {1}'.format(
+                random.choice(self._HI), userName)
             self._postMessage(messageText=messageText, channel=channel)
 
-        elif private:
+        elif mention:
             userMention = self.getMention(user)
-            messageText = '{0} {1}'.format(random.sample(self._HI), userMention)
+            messageText = '{0} {1}'.format(random.choice(self._HI), userMention)
             self._postMessage(messageText=messageText, channel=channel)
 
         else:
             # TODO generalizzare a tutti
-            messageText = '{0} {1}'.format(random.sample(self._HI), 'a tutti')
+            messageText = '{0} {1}'.format(random.choice(self._HI), 'a tutti')
             self._postMessage(messageText=messageText, channel=channel)
 
-    def hanldeMessage(self, message, user, channel, private):
-        if self.isHi(message):
-            return self.sayHi(user, channel, private)
+    def handleMessage(self, message, user, channel, mention):
+        if self.isHi(message=message):
+            return self.sayHi(user, channel, mention)
 
     def run(self):
         if not self.client.rtm_connect():
@@ -83,10 +83,12 @@ class MessageHandler(object):
                 continue
 
             for event in eventList:
-                print(event)
-                if self._isForMe(event):
+                forMe = self._isForMe(event)
+                if forMe:
+                    mention = bool(forMe == 'mention')
                     self.handleMessage(
                         message=event.get('text'),
                         user=event.get('user'),
-                        channel=event.get('channel'))
+                        channel=event.get('channel'),
+                        mention=mention)
         time.sleep(self.delay)
