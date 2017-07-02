@@ -1,5 +1,6 @@
 import time
 import random
+import string
 
 
 class MessageHandler(object):
@@ -63,6 +64,15 @@ class MessageHandler(object):
             'chat.postMessage', channel=channel,
             text=messageText, as_user=True)
 
+    def _normalizeText(self, messageText):
+        translator = str.maketrans(' ', ' ', string.punctuation)
+        messageText = messageText.translate(translator).lower()
+        space = " "
+        for key in ['\n', '\t']:
+            messageText = messageText.replace(key, space)
+
+        return " ".join(filter(None, messageText.strip().split(space)))
+
     def isHi(self, message):
         for token in message.split(' '):
             if token in self._HI:
@@ -123,7 +133,7 @@ class MessageHandler(object):
                 if forMe:
                     mention = bool(forMe == 'mention')
                     self.handleMessage(
-                        message=event.get('text'),
+                        message=self._normalizeText(event.get('text')),
                         user=event.get('user'),
                         channel=event.get('channel'),
                         mention=mention)
