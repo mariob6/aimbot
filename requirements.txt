@@ -1,0 +1,2 @@
+slackclient==1.0.6
+websocket-client==0.44.0
