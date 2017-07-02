@@ -1,5 +1,18 @@
 import time
 import random
+import re
+
+""" API import """
+import os.path
+import sys
+import json
+try:
+    import apiai
+except ImportError:
+    sys.path.append(
+        os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir)
+    )
+    import apiai
 
 
 class MessageHandler(object):
@@ -15,6 +28,8 @@ class MessageHandler(object):
         self.mention = self.getMention(botId)
         self.client = client
         self.delay = socket_delay
+        self.CLIENT_API_TOKEN = '74399e8cbf7a440fbc751e043b97f798'
+
 
     def isPrivate(self, event):
         """Checks if private slack channel"""
@@ -36,10 +51,10 @@ class MessageHandler(object):
 
         messageText = event.get('text')
 
-        if self.mention in messageText.split():
+        if re.search(self.mention, messageText):
             return 'mention'
 
-        if self.botName in messageText.split():
+        if re.search(self.botName, messageText):
             return 'name'
 
     def _decorateMessage(self, userId, text, mention=False, front=True,
@@ -101,11 +116,35 @@ class MessageHandler(object):
 
         self._postMessage(messageText=messageText, channel=channel)
 
+    def answerApi(self, text, user, channel):
+        answer = ""
+        ai = apiai.ApiAI(self.CLIENT_API_TOKEN)
+        proper_text = text.replace(self.mention, "")
+        print('API.AI. Testo: {0}').format(proper_text)
+        request = ai.text_request()
+        request.lang = 'it'
+        request.session_id = str(user) + str(time.time()).split('.')[0]
+        request.query = proper_text
+        response = json.loads(request.getresponse().read())
+        print(response)
+        answer = response['result']['fulfillment']['speech']
+        print('anser api:' + answer)
+        if len(answer) > 0:
+            self._postMessage(messageText=answer, channel=channel)
+            return(True)
+
     def handleMessage(self, message, user, channel, mention):
         if self.isHi(message=message):
+            print('isHi')
             return self.sayHi(user, channel, mention)
         elif self.isInsult(message=message):
+            print('isInsult')
             return self.sayInsult(user, channel, mention)
+        elif self.answerApi(message, user, channel):
+            print('answer api')
+        else:
+            # FALLBACK
+            self._postMessage(messageText='Spacco botilia ammazzo familia', channel=channel)
 
     def run(self):
         if not self.client.rtm_connect():
@@ -120,8 +159,10 @@ class MessageHandler(object):
 
             for event in eventList:
                 forMe = self._isForMe(event)
+                print('forMe: {0}. Event type: {1}').format(forMe, event.get('type'))
                 if forMe:
                     mention = bool(forMe == 'mention')
+                    print('mention: {0}').format(mention)
                     self.handleMessage(
                         message=event.get('text'),
                         user=event.get('user'),
