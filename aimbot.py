@@ -5,6 +5,18 @@ import websocket
 # delay in seconds before checking for new events
 SOCKET_DELAY = 1
 
+
+botNameVar = 'AIMBOT_SLACK_NAME'
+botTokenVar = 'AIMBOT_SLACK_TOKEN'
+botIdVar = 'AIMBOT_SLACK_ID'
+
+botName = os.environ.get(botNameVar)
+botToken = os.environ.get(botTokenVar)
+botID = os.environ.get(botIdVar)
+
+client = slackclient.SlackClient(botToken)
+
+
 def is_private(event):
     """Checks if private slack channel"""
     return event.get('channel').startswith('D')
@@ -17,21 +29,14 @@ def is_for_me(event):
 
 def handle_message(message, user, channel):
     # TODO Implement later
-    post_message(message='Hello', channel=channel)
+    post_message(message='Buonaseeraaa', channel=channel)
 
 def post_message(message, channel):
-    valet_slack_client.api_call('chat.postMessage', channel=channel,
+    client.api_call('chat.postMessage', channel=channel,
                           text=message, as_user=True)
 
 def run():
-        botNameVar = 'AIMBOT_SLACK_NAME'
-        botTokenVar = 'AIMBOT_SLACK_TOKEN'
-        botIdVar = 'AIMBOT_SLACK_ID'
 
-        botName = os.environ.get(botNameVar)
-        botToken = os.environ.get(botTokenVar)
-        botID = os.environ.get(botIdVar)
-        client = slackclient.SlackClient(botToken)
         isOk = client.api_call("users.list").get('ok')
         print(isOk)
 
