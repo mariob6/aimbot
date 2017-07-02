@@ -14,6 +14,9 @@ except ImportError:
     )
     import apiai
 
+import string
+
+
 
 class MessageHandler(object):
 
@@ -77,6 +80,15 @@ class MessageHandler(object):
         self.client.api_call(
             'chat.postMessage', channel=channel,
             text=messageText, as_user=True)
+
+    def _normalizeText(self, messageText):
+        translator = str.maketrans(' ', ' ', string.punctuation)
+        messageText = messageText.translate(translator).lower()
+        space = " "
+        for key in ['\n', '\t']:
+            messageText = messageText.replace(key, space)
+
+        return " ".join(filter(None, messageText.strip().split(space)))
 
     def isHi(self, message):
         for token in message.split(' '):
@@ -164,7 +176,7 @@ class MessageHandler(object):
                     mention = bool(forMe == 'mention')
                     print('mention: {0}').format(mention)
                     self.handleMessage(
-                        message=event.get('text'),
+                        message=self._normalizeText(event.get('text')),
                         user=event.get('user'),
                         channel=event.get('channel'),
                         mention=mention)
