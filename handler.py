@@ -34,7 +34,7 @@ class MessageHandler(object):
         self.mention = self.getMention(botId)
         self.client = client
         self.delay = socket_delay
-        self.CLIENT_API_TOKEN = '74399e8cbf7a440fbc751e043b97f798'
+        self.CLIENT_API_TOKEN = '958998f497d34a4d8555fecafd265f28'
 
 
     def isPrivate(self, event):
@@ -57,10 +57,10 @@ class MessageHandler(object):
 
         messageText = event.get('text')
 
-        if re.search(self.mention, messageText):
+        if re.search(str(self.mention), str(messageText)):
             return 'mention'
 
-        if re.search(self.botName, messageText):
+        if re.search(str(self.botName), str(messageText)):
             return 'name'
 
     def _decorateMessage(self, userId, text, mention=False, front=True,
