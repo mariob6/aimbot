@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import time
 import random
 import re
@@ -31,7 +34,7 @@ class MessageHandler(object):
         self.mention = self.getMention(botId)
         self.client = client
         self.delay = socket_delay
-        self.CLIENT_API_TOKEN = '74399e8cbf7a440fbc751e043b97f798'
+        self.CLIENT_API_TOKEN = '958998f497d34a4d8555fecafd265f28'
 
 
     def isPrivate(self, event):
@@ -54,10 +57,10 @@ class MessageHandler(object):
 
         messageText = event.get('text')
 
-        if re.search(self.mention, messageText):
+        if re.search(str(self.mention), str(messageText)):
             return 'mention'
 
-        if re.search(self.botName, messageText):
+        if re.search(str(self.botName), str(messageText)):
             return 'name'
 
     def _decorateMessage(self, userId, text, mention=False, front=True,
@@ -132,7 +135,7 @@ class MessageHandler(object):
         answer = ""
         ai = apiai.ApiAI(self.CLIENT_API_TOKEN)
         proper_text = text.replace(self.mention, "")
-        print('API.AI. Testo: {0}').format(proper_text)
+        print('API.AI. Testo: {0}'.format(proper_text))
         request = ai.text_request()
         request.lang = 'it'
         request.session_id = str(user) + str(time.time()).split('.')[0]
@@ -171,10 +174,10 @@ class MessageHandler(object):
 
             for event in eventList:
                 forMe = self._isForMe(event)
-                print('forMe: {0}. Event type: {1}').format(forMe, event.get('type'))
+                print('forMe: {0}. Event type: {1}'.format(forMe, event.get('type')))
                 if forMe:
                     mention = bool(forMe == 'mention')
-                    print('mention: {0}').format(mention)
+                    print('mention: {0}'.format(mention))
                     self.handleMessage(
                         message=self._normalizeText(event.get('text')),
                         user=event.get('user'),
