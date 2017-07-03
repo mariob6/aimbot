@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import time
 import random
 import re
@@ -132,7 +135,7 @@ class MessageHandler(object):
         answer = ""
         ai = apiai.ApiAI(self.CLIENT_API_TOKEN)
         proper_text = text.replace(self.mention, "")
-        print('API.AI. Testo: {0}').format(proper_text)
+        print('API.AI. Testo: {0}'.format(proper_text))
         request = ai.text_request()
         request.lang = 'it'
         request.session_id = str(user) + str(time.time()).split('.')[0]
@@ -171,10 +174,10 @@ class MessageHandler(object):
 
             for event in eventList:
                 forMe = self._isForMe(event)
-                print('forMe: {0}. Event type: {1}').format(forMe, event.get('type'))
+                print('forMe: {0}. Event type: {1}'.format(forMe, event.get('type')))
                 if forMe:
                     mention = bool(forMe == 'mention')
-                    print('mention: {0}').format(mention)
+                    print('mention: {0}'.format(mention))
                     self.handleMessage(
                         message=self._normalizeText(event.get('text')),
                         user=event.get('user'),
