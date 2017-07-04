@@ -33,11 +33,13 @@ class ChatBotHandler(AbstracHandler):
             return 'private'
 
         messageText = event.get('text')
+        if messageText:
+            messageText = messageText.lower()
 
         if re.search(str(self.mention), str(messageText)):
             return 'mention'
 
-        if re.search(str(self.botName), str(messageText.lower())):
+        if re.search(str(self.botName), str(messageText)):
             return 'name'
 
     def _postMessage(self, messageText, channel):
