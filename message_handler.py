@@ -53,11 +53,6 @@ class MessageHandler(AbstracHandler):
 
         return " ".join(filter(None, messageText.strip().split(space)))
 
-    def isHi(self, message):
-        for token in message.split(' '):
-            if token in self._HI:
-                return True
-
     def sayHi(self, user, mention, privateChannel):
         """In private channel: say Hi + username
         In public: say Hi + username if mention else Hi everybody"""
@@ -73,12 +68,6 @@ class MessageHandler(AbstracHandler):
                 user, random.choice(self._HI), toChannel=True)
 
         return messageText
-        # self._postMessage(messageText=messageText, channel=channel)
-
-    def isInsult(self, message):
-        for token in message.split(' '):
-            if token in self._INSULT:
-                return True
 
     def sayInsult(self, user, mention, privateChannel):
         if privateChannel or not mention:
@@ -90,7 +79,6 @@ class MessageHandler(AbstracHandler):
                 user, random.choice(self._INSULT), mention=mention)
 
         return messageText
-        # self._postMessage(messageText=messageText, channel=channel)
 
     def answerApi(self, text, user):
         answer = ""
@@ -102,25 +90,39 @@ class MessageHandler(AbstracHandler):
         request.session_id = str(user) + str(time.time()).split('.')[0]
         request.query = proper_text
         response = json.loads(request.getresponse().read().decode('utf-8'))
-        print(response)
-        answer = response['result']['fulfillment']['speech']
+        answer = response \
+            .get('result', {}) \
+            .get('fulfillment', {}) \
+            .get('speech', None)
+
         print('anser api:' + answer)
         return answer
 
-    def handle(self, message, user, mention, privateChannel=False):
-        message = self._normalizeText(message)
+    def classifyIntent(self, message):
+        for token in message.split(" "):
+            if token in self._HI:
+                return 'hi'
 
-        if self.isHi(message=message):
-            print('isHi')
+            elif token in self._INSULT:
+                return 'insult'
+
+        return 'ApiAi'
+
+    def answerFromIntent(self, intent, user, mention, privateChannel, message):
+        if intent == 'hi':
             return self.sayHi(user, mention, privateChannel)
-        elif self.isInsult(message=message):
-            print('isInsult')
+        elif intent == 'insult':
             return self.sayInsult(user, mention, privateChannel)
         else:
             answer = self.answerApi(message, user)
             if not answer:
-                # FALLBACK
                 return('Spacco botilia ammazzo familia')
 
             return answer
-            
+
+    def handle(self, message, user, mention, privateChannel=False):
+        message = self._normalizeText(message)
+        intent = self.classifyIntent(message)
+
+        return self.answerFromIntent(
+            intent, user, mention, privateChannel, message)
